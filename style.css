@@ -71,3 +71,16 @@ button:active {
   top: 1em;
   left: 1em;
 }
+
+input[type="file"] {
+  display: none;
+}
+
+.file-upload {
+  background-color: hsl(215.75, 98.36%, 52.16%);
+  padding: 0.45em 0.8em 0.35em 0.8em;
+  font-size: 15px;
+  border: 0px;
+  border-radius: 5px;
+  color: white;
+}

@@ -58,7 +58,10 @@ cy.on("tap", function (event) {
   }
 
   if (statusLine === Status.addingNode) {
-    cy.add({ data: { id: (newNodeId++).toString() }, position: event.position });
+    while (cy.$("#" + newNodeId.toString()).length !== 0) {
+      newNodeId++;
+    }
+    cy.add({ data: { id: newNodeId.toString() }, position: event.position });
     setStatus("");
   }
 });
@@ -99,8 +102,60 @@ function rerender() {
 
 // -------------------- Button event listeneres --------------------
 
-document.getElementById("upload").addEventListener("click", function () {
-  // TODO
+const fileUpload = document.getElementById("upload");
+fileUpload.addEventListener("change", function () {
+  const file = fileUpload.files[0];
+  const reader = new FileReader();
+  reader.addEventListener("load", function () {
+    const parser = new DOMParser();
+    const xmlGraph = parser.parseFromString(reader.result, "application/xml");
+    const parseError = xmlGraph.querySelector("parsererror");
+    if (parseError) {
+      alert("Špatný formát nahraného souboru");
+      return;
+    }
+
+    const root = xmlGraph.activeElement;
+    const graph = root.querySelector("graph");
+    if (!graph) {
+      alert("Špatný formát nahraného souboru")
+      return;
+    }
+
+    if (graph.attributes["edgedefault"].value !== "undirected") {
+      alert("Špatný formát nahraného souboru - aplikace podporuje pouze neorientované grafy")
+      return;
+    }
+
+    const elements = [];
+
+    for (let elem of graph.children) {
+      if (elem.nodeName === "node") {
+        elements.push({ data: { id: elem.id } });
+      } else if (elem.nodeName === "edge") {
+        elements.push({
+          data: {
+            source: elem.attributes["source"].value,
+            target: elem.attributes["target"].value
+          }
+        })
+      } else {
+        alert("Špatný formát nahraného souboru");
+        return;
+      }
+
+      try {
+        cy.batch(function () {
+          cy.remove("*");
+          cy.add(elements);
+        });
+        rerender();
+      } catch (err) {
+        alert("Špatné data nahraného souboru - nebylo možné sestavit validní graf");
+      }
+    }
+  });
+  reader.readAsText(file);
 });
 
 document.getElementById("download").addEventListener("click", function () {
