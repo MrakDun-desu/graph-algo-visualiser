@@ -4,6 +4,8 @@ let statusLine = "";
 let newNodeId = 0;
 let selectedNode = null;
 
+const downloadLink = document.getElementById("downloadLink");
+
 // statuses
 const Status = {
   addingNode: "Klikněte pro přidání uzlu",
@@ -159,7 +161,52 @@ fileUpload.addEventListener("change", function () {
 });
 
 document.getElementById("download").addEventListener("click", function () {
-  // TODO
+  const doc = document.implementation.createDocument(
+    "http://graphml.graphdrawing.org/xmlns",
+    "graphml"
+  );
+
+  doc.documentElement.setAttribute(
+    "xmlns:xsi",
+    "http://www.w3.org/2001/XMLSchema-instance"
+  );
+  doc.documentElement.setAttribute(
+    "xsi:schemaLocation",
+    "http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"
+  );
+
+  const graphElement = doc.createElement("graph");
+  graphElement.setAttribute("edgedefault", "undirected");
+  doc.documentElement.appendChild(graphElement);
+
+  const elems = cy.elements();
+  for (let elem of elems) {
+    let newElement = null;
+    if (elem.isNode()) {
+      newElement = doc.createElement("node");
+      newElement.setAttribute("id", elem.id());
+    } else if (elem.isEdge()) {
+      newElement = doc.createElement("edge");
+      newElement.setAttribute("source", elem.source().id());
+      newElement.setAttribute("target", elem.target().id());
+    }
+    if (newElement !== null) {
+      graphElement.appendChild(newElement);
+    }
+  }
+
+  const serializer = new XMLSerializer();
+  const output =
+    ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + serializer.serializeToString(doc))
+      // for some reason the xmlns attribute gets put into the graph element
+      // so it's necessary to remove it manually when it's serialized
+      // (removing it with removeAttribute does nothing)
+      .replace("graph xmlns=\"\" ", "graph ");
+  console.log(output);
+  const blob = new Blob([output], { type: "application/xml" });
+  downloadLink.href = URL.createObjectURL(blob);
+  downloadLink.download = "graph.graphml";
+  downloadLink.click();
 });
 
 document.getElementById("clear").addEventListener("click", function () {
