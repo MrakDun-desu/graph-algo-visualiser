@@ -33,7 +33,11 @@ button {
   border: 0px;
   border-radius: 5px;
   color: white;
-  background-color: #0d6efd;
+  background-color: hsl(215.75, 98.36%, 52.16%);
+}
+
+button:active {
+  background-color: hsl(215.75, 98.36%, 70%);
 }
 
 #cy {
@@ -46,13 +50,24 @@ button {
 
 .algo-controls {
   display: flex;
+  flex-wrap: wrap;
   flex-direction: row;
   gap: 1em;
-  position: absolute;
-  top: 1em;
-  left: 1em;
+  margin: 1em;
+  margin-top: 0;
+}
+
+.divider {
+  background-color: #ccc;
+  width: 1px;
 }
 
 #cy canvas {
-	left: 0;
+  left: 0;
+}
+
+#status-line {
+  position: absolute;
+  top: 1em;
+  left: 1em;
 }

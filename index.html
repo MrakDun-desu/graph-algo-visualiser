@@ -14,15 +14,24 @@
   <div class="container">
     <div class="top-bar">
       <h1>GAL Projekt - Demonstrace - Artikulační body a mosty</h1>
+    </div>
+    <div class="algo-controls">
       <button id="upload" type="button">Nahrát graf</button>
       <button id="download" type="button">Uložit graf</button>
+      <button id="clear" type="button">Smazat graf</button>
+      <button id="layout" type="button">Automatické rozložení</button>
+      <div class="divider"></div>
+      <button id="add-node" type="button">Přidat uzel</button>
+      <button id="add-edge" type="button">Přidat hranu</button>
+      <button id="remove-node" type="button">Odstranit uzel</button>
+      <button id="remove-edge" type="button">Odstranit hranu</button>
+      <div class="divider"></div>
+      <button id="start-articulation" type="button">Najít artikulační body</button>
+      <button id="start-bridges" type="button">Najít mosty</button>
+      <button id="start-biconnected" type="button">Najít 2-souvislé komponenty</button>
     </div>
     <div id="cy">
-      <div class="algo-controls">
-        <button id="start" type="button">Spustit algoritmus</button>
-        <button id="prev-step" type="button">&lt;</button>
-        <button id="next-step" type="button">&gt;</button>
-      </div>
+      <div id="status-line"></div>
     </div>
   </div>
 </body>
