@@ -97,10 +97,110 @@ cy.on("tap", "edge", function (event) {
   }
 });
 
+
+
+// -------------------- Functions for events  --------------------
+
+function upload() {
+  
+} 
+
+function download() {
+  const doc = document.implementation.createDocument(
+    "http://graphml.graphdrawing.org/xmlns",
+    "graphml"
+  );
+
+  doc.documentElement.setAttribute(
+    "xmlns:xsi",
+    "http://www.w3.org/2001/XMLSchema-instance"
+  );
+  doc.documentElement.setAttribute(
+    "xsi:schemaLocation",
+    "http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"
+  );
+
+  const graphElement = doc.createElement("graph");
+  graphElement.setAttribute("edgedefault", "undirected");
+  doc.documentElement.appendChild(graphElement);
+
+  const elems = cy.elements();
+  for (let elem of elems) {
+    let newElement = null;
+    if (elem.isNode()) {
+      newElement = doc.createElement("node");
+      newElement.setAttribute("id", elem.id());
+    } else if (elem.isEdge()) {
+      newElement = doc.createElement("edge");
+      newElement.setAttribute("source", elem.source().id());
+      newElement.setAttribute("target", elem.target().id());
+    }
+    if (newElement !== null) {
+      graphElement.appendChild(newElement);
+    }
+  }
+
+  const serializer = new XMLSerializer();
+  const output =
+    ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + serializer.serializeToString(doc))
+      // for some reason the xmlns attribute gets put into the graph element
+      // so it's necessary to remove it manually when it's serialized
+      // (removing it with removeAttribute does nothing)
+      .replace("graph xmlns=\"\" ", "graph ");
+  console.log(output);
+  const blob = new Blob([output], { type: "application/xml" });
+  downloadLink.href = URL.createObjectURL(blob);
+  downloadLink.download = "graph.graphml";
+  downloadLink.click();
+} 
+
 function rerender() {
   let layout = cy.layout({ name: "cose" });
   layout.run();
+} 
+
+function removeAll() {
+  cy.remove("*");
+  newNodeId = 0;
 }
+
+function addNode() {
+  setStatus(Status.addingNode)
+}
+
+function addEdge() {
+  selectedNode = null;
+  setStatus(Status.addingEdge);
+}
+
+function removeNode() {
+  setStatus(Status.removingNode);
+}
+
+function removeEdge() {
+  setStatus(Status.removingEdge);
+}
+
+function removeEdge() {
+  setStatus(Status.removingEdge);
+}
+
+function startArticulation() {
+  setStatus(Status.runningArticulation);
+  // TODO
+}
+
+function startBridges() {
+  setStatus(Status.runningBridges);
+  // TODO
+}
+
+function startBiconnected() {
+  setStatus(Status.runningBiconnected);
+  // TODO
+}
+
+
 
 // -------------------- Button event listeneres --------------------
 
@@ -161,57 +261,11 @@ fileUpload.addEventListener("change", function () {
 });
 
 document.getElementById("download").addEventListener("click", function () {
-  const doc = document.implementation.createDocument(
-    "http://graphml.graphdrawing.org/xmlns",
-    "graphml"
-  );
-
-  doc.documentElement.setAttribute(
-    "xmlns:xsi",
-    "http://www.w3.org/2001/XMLSchema-instance"
-  );
-  doc.documentElement.setAttribute(
-    "xsi:schemaLocation",
-    "http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"
-  );
-
-  const graphElement = doc.createElement("graph");
-  graphElement.setAttribute("edgedefault", "undirected");
-  doc.documentElement.appendChild(graphElement);
-
-  const elems = cy.elements();
-  for (let elem of elems) {
-    let newElement = null;
-    if (elem.isNode()) {
-      newElement = doc.createElement("node");
-      newElement.setAttribute("id", elem.id());
-    } else if (elem.isEdge()) {
-      newElement = doc.createElement("edge");
-      newElement.setAttribute("source", elem.source().id());
-      newElement.setAttribute("target", elem.target().id());
-    }
-    if (newElement !== null) {
-      graphElement.appendChild(newElement);
-    }
-  }
-
-  const serializer = new XMLSerializer();
-  const output =
-    ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + serializer.serializeToString(doc))
-      // for some reason the xmlns attribute gets put into the graph element
-      // so it's necessary to remove it manually when it's serialized
-      // (removing it with removeAttribute does nothing)
-      .replace("graph xmlns=\"\" ", "graph ");
-  console.log(output);
-  const blob = new Blob([output], { type: "application/xml" });
-  downloadLink.href = URL.createObjectURL(blob);
-  downloadLink.download = "graph.graphml";
-  downloadLink.click();
+  download();
 });
 
 document.getElementById("clear").addEventListener("click", function () {
-  cy.remove("*");
-  newNodeId = 0;
+  removeAll(); 
 });
 
 document.getElementById("layout").addEventListener("click", function () {
@@ -219,34 +273,81 @@ document.getElementById("layout").addEventListener("click", function () {
 });
 
 document.getElementById("add-node").addEventListener("click", function () {
-  setStatus(Status.addingNode);
+  addNode();
 });
 
 document.getElementById("add-edge").addEventListener("click", function () {
-  selectedNode = null;
-  setStatus(Status.addingEdge);
+  addEdge();
 });
 
 document.getElementById("remove-node").addEventListener("click", function () {
-  setStatus(Status.removingNode);
+  removeNode();
 });
 
 document.getElementById("remove-edge").addEventListener("click", function () {
-  setStatus(Status.removingEdge);
+  removeEdge();
 });
 
 document.getElementById("start-articulation").addEventListener("click", function () {
-  setStatus(Status.runningArticulation);
-  // TODO
+  startArticulation();
 });
 
 document.getElementById("start-bridges").addEventListener("click", function () {
-  setStatus(Status.runningBridges);
-  // TODO
+  startBridges();
 });
 
 document.getElementById("start-biconnected").addEventListener("click", function () {
-  setStatus(Status.runningBiconnected);
-  // TODO
+  startBiconnected();
 });
 
+
+// -------------------- Keydown event listeneres --------------------
+
+
+document.addEventListener("keydown", (event) => {
+  switch (event.key) {
+    case  "R":
+      removeAll();
+      break;
+    
+    case  "r":
+      rerender(cy);
+      break;
+    
+    case  "n":
+      addNode();
+      break;
+
+    case  "e":
+      addEdge();
+      break;
+
+    case  "N":
+      removeNode();
+      break;
+
+    case  "E":
+      removeEdge();
+      break;
+
+    case  "a":
+      startArticulation();
+      break;
+
+    case  "b":
+      startBridges();
+      break;
+
+    case  "c":
+      startBiconnected();
+      break;
+     
+    case  "d":
+      download();
+      break;
+  
+    default:
+      break;
+  }
+
+});
