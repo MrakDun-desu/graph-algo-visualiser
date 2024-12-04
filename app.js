@@ -5,6 +5,7 @@ let newNodeId = 0;
 let selectedNode = null;
 
 const downloadLink = document.getElementById("downloadLink");
+const fileUpload = document.getElementById("upload");
 
 // statuses
 const Status = {
@@ -15,7 +16,7 @@ const Status = {
   runningArticulation: "Hledání artikulačních bodů",
   runningBridges: "Hledání mostů",
   runningBiconnected: "Hledání 2-souvislých komponentů"
-}
+};
 
 // -------------------- Helper functions --------------------
 
@@ -97,115 +98,9 @@ cy.on("tap", "edge", function (event) {
   }
 });
 
-
-
 // -------------------- Functions for events  --------------------
 
 function upload() {
-  
-} 
-
-function download() {
-  const doc = document.implementation.createDocument(
-    "http://graphml.graphdrawing.org/xmlns",
-    "graphml"
-  );
-
-  doc.documentElement.setAttribute(
-    "xmlns:xsi",
-    "http://www.w3.org/2001/XMLSchema-instance"
-  );
-  doc.documentElement.setAttribute(
-    "xsi:schemaLocation",
-    "http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"
-  );
-
-  const graphElement = doc.createElement("graph");
-  graphElement.setAttribute("edgedefault", "undirected");
-  doc.documentElement.appendChild(graphElement);
-
-  const elems = cy.elements();
-  for (let elem of elems) {
-    let newElement = null;
-    if (elem.isNode()) {
-      newElement = doc.createElement("node");
-      newElement.setAttribute("id", elem.id());
-    } else if (elem.isEdge()) {
-      newElement = doc.createElement("edge");
-      newElement.setAttribute("source", elem.source().id());
-      newElement.setAttribute("target", elem.target().id());
-    }
-    if (newElement !== null) {
-      graphElement.appendChild(newElement);
-    }
-  }
-
-  const serializer = new XMLSerializer();
-  const output =
-    ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + serializer.serializeToString(doc))
-      // for some reason the xmlns attribute gets put into the graph element
-      // so it's necessary to remove it manually when it's serialized
-      // (removing it with removeAttribute does nothing)
-      .replace("graph xmlns=\"\" ", "graph ");
-  console.log(output);
-  const blob = new Blob([output], { type: "application/xml" });
-  downloadLink.href = URL.createObjectURL(blob);
-  downloadLink.download = "graph.graphml";
-  downloadLink.click();
-} 
-
-function rerender() {
-  let layout = cy.layout({ name: "cose" });
-  layout.run();
-} 
-
-function removeAll() {
-  cy.remove("*");
-  newNodeId = 0;
-}
-
-function addNode() {
-  setStatus(Status.addingNode)
-}
-
-function addEdge() {
-  selectedNode = null;
-  setStatus(Status.addingEdge);
-}
-
-function removeNode() {
-  setStatus(Status.removingNode);
-}
-
-function removeEdge() {
-  setStatus(Status.removingEdge);
-}
-
-function removeEdge() {
-  setStatus(Status.removingEdge);
-}
-
-function startArticulation() {
-  setStatus(Status.runningArticulation);
-  // TODO
-}
-
-function startBridges() {
-  setStatus(Status.runningBridges);
-  // TODO
-}
-
-function startBiconnected() {
-  setStatus(Status.runningBiconnected);
-  // TODO
-}
-
-
-
-// -------------------- Button event listeneres --------------------
-
-const fileUpload = document.getElementById("upload");
-fileUpload.addEventListener("change", function () {
   const file = fileUpload.files[0];
   const reader = new FileReader();
   reader.addEventListener("load", function () {
@@ -258,96 +153,181 @@ fileUpload.addEventListener("change", function () {
     }
   });
   reader.readAsText(file);
-});
+}
 
-document.getElementById("download").addEventListener("click", function () {
-  download();
-});
+function download() {
+  const doc = document.implementation.createDocument(
+    "http://graphml.graphdrawing.org/xmlns",
+    "graphml"
+  );
 
-document.getElementById("clear").addEventListener("click", function () {
-  removeAll(); 
-});
+  doc.documentElement.setAttribute(
+    "xmlns:xsi",
+    "http://www.w3.org/2001/XMLSchema-instance"
+  );
+  doc.documentElement.setAttribute(
+    "xsi:schemaLocation",
+    "http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"
+  );
 
-document.getElementById("layout").addEventListener("click", function () {
-  rerender(cy);
-});
+  const graphElement = doc.createElement("graph");
+  graphElement.setAttribute("edgedefault", "undirected");
+  doc.documentElement.appendChild(graphElement);
 
-document.getElementById("add-node").addEventListener("click", function () {
-  addNode();
-});
-
-document.getElementById("add-edge").addEventListener("click", function () {
-  addEdge();
-});
-
-document.getElementById("remove-node").addEventListener("click", function () {
-  removeNode();
-});
-
-document.getElementById("remove-edge").addEventListener("click", function () {
-  removeEdge();
-});
-
-document.getElementById("start-articulation").addEventListener("click", function () {
-  startArticulation();
-});
-
-document.getElementById("start-bridges").addEventListener("click", function () {
-  startBridges();
-});
-
-document.getElementById("start-biconnected").addEventListener("click", function () {
-  startBiconnected();
-});
-
-
-// -------------------- Keydown event listeneres --------------------
-
-
-document.addEventListener("keydown", (event) => {
-  switch (event.key) {
-    case  "R":
-      removeAll();
-      break;
-    
-    case  "r":
-      rerender(cy);
-      break;
-    
-    case  "n":
-      addNode();
-      break;
-
-    case  "e":
-      addEdge();
-      break;
-
-    case  "N":
-      removeNode();
-      break;
-
-    case  "E":
-      removeEdge();
-      break;
-
-    case  "a":
-      startArticulation();
-      break;
-
-    case  "b":
-      startBridges();
-      break;
-
-    case  "c":
-      startBiconnected();
-      break;
-     
-    case  "d":
-      download();
-      break;
-  
-    default:
-      break;
+  const elems = cy.elements();
+  for (let elem of elems) {
+    let newElement = null;
+    if (elem.isNode()) {
+      newElement = doc.createElement("node");
+      newElement.setAttribute("id", elem.id());
+    } else if (elem.isEdge()) {
+      newElement = doc.createElement("edge");
+      newElement.setAttribute("source", elem.source().id());
+      newElement.setAttribute("target", elem.target().id());
+    }
+    if (newElement !== null) {
+      graphElement.appendChild(newElement);
+    }
   }
 
+  const serializer = new XMLSerializer();
+  const output =
+    ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + serializer.serializeToString(doc))
+      // for some reason the xmlns attribute gets put into the graph element
+      // so it's necessary to remove it manually when it's serialized
+      // (removing it with removeAttribute does nothing)
+      .replace("graph xmlns=\"\" ", "graph ");
+  console.log(output);
+  const blob = new Blob([output], { type: "application/xml" });
+  downloadLink.href = URL.createObjectURL(blob);
+  downloadLink.download = "graph.graphml";
+  downloadLink.click();
+}
+
+function rerender() {
+  let layout = cy.layout({ name: "cose" });
+  layout.run();
+}
+
+function removeAll() {
+  cy.remove("*");
+  newNodeId = 0;
+}
+
+function addNode() {
+  setStatus(Status.addingNode)
+}
+
+function addEdge() {
+  selectedNode = null;
+  setStatus(Status.addingEdge);
+}
+
+function removeNode() {
+  setStatus(Status.removingNode);
+}
+
+function removeEdge() {
+  setStatus(Status.removingEdge);
+}
+
+function removeEdge() {
+  setStatus(Status.removingEdge);
+}
+
+function startArticulation() {
+  setStatus(Status.runningArticulation);
+}
+
+function startBridges() {
+  setStatus(Status.runningBridges);
+  // TODO
+}
+
+function startBiconnected() {
+  setStatus(Status.runningBiconnected);
+  // TODO
+}
+
+// -------------------- Event handling --------------------
+
+const eventConfigs = [
+  {
+    id: "upload",
+    event: "change",
+    handler: upload,
+    shortcut: "u",
+    shortcutHandler: () => fileUpload.click()
+  },
+  {
+    id: "download",
+    handler: download,
+    shortcut: "d"
+  },
+  {
+    id: "clear",
+    handler: removeAll,
+    shortcut: "R"
+  },
+  {
+    id: "layout",
+    handler: rerender,
+    shortcut: "r"
+  },
+  {
+    id: "add-node",
+    handler: addNode,
+    shortcut: "n"
+  },
+  {
+    id: "add-edge",
+    handler: addEdge,
+    shortcut: "e"
+  },
+  {
+    id: "remove-node",
+    handler: removeNode,
+    shortcut: "N"
+  },
+  {
+    id: "remove-edge",
+    handler: removeEdge,
+    shortcut: "E"
+  },
+  {
+    id: "start-articulation",
+    handler: startArticulation,
+    shortcut: "a"
+  },
+  {
+    id: "start-bridges",
+    handler: startBridges,
+    shortcut: "b"
+  },
+  {
+    id: "show-biconnected",
+    handler: startBiconnected,
+    shortcut: "c"
+  },
+];
+
+for (const config of eventConfigs) {
+  const target = document.getElementById(config.id);
+  target.addEventListener(config.event ?? "click", config.handler);
+  target.setAttribute(
+    "title",
+    config.tooltip ?? "" + `(${config.shortcut})`
+  );
+}
+
+document.addEventListener("keydown", (evt) => {
+  for (const config of eventConfigs) {
+    if (config.shortcut === evt.key) {
+      if (config.shortcutHandler) {
+        config.shortcutHandler();
+      } else {
+        config.handler();
+      }
+    }
+  }
 });
