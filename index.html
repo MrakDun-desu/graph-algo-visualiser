@@ -11,11 +11,10 @@
 </head>
 
 <body>
-  <div class="container">
-    <div class="top-bar">
-      <h1>GAL Projekt - Demonstrace - Artikulační body a mosty</h1>
-    </div>
-    <div class="algo-controls">
+  <div class="container algo-active">
+    <h1>GAL Projekt - Demonstrace - Artikulační body a mosty</h1>
+
+    <div id="controls">
       <label class="file-upload" for="upload">Nahrát graf</label>
       <input type="file" name="upload" id="upload" />
       <button id="download" type="button">Uložit graf</button>
@@ -29,11 +28,96 @@
       <div class="divider"></div>
       <button id="start-articulation" type="button">Najít artikulační body</button>
       <button id="start-bridges" type="button">Najít mosty</button>
-      <button id="show-biconnected" type="button">Najít 2-souvislé komponenty</button>
     </div>
+
+    <section id="algo-steps">
+      <h2>Algoritmus</h2>
+      <div class="content">
+        <div>Step 1</div>
+        <div>Step 2</div>
+        <div class="current">Step 3</div>
+        <div>Step 2</div>
+        <div>Step 2</div>
+        <div>Step 2</div>
+        <div>Step 2</div>
+        <div>Step 2</div>
+        <div>Step 2</div>
+        <div>Step 2</div>
+        <div>Step 2</div>
+        <div>Step 2</div>
+        <div>Step 2</div>
+        <div>Step 2</div>
+        <div>Step 2</div>
+        <div>Step 2</div>
+        <div>Step 2</div>
+        <div>Step 2</div>
+      </div>
+    </section>
+
+    <section id="algo-vars">
+      <h2>Proměnné</h2>
+      <div class="content">
+        {<br>
+        &ensp;"d" = {<br>
+        &ensp;&ensp;"0": null,<br>
+        &ensp;&ensp;"1": 42 <br>
+        &ensp;}<br>
+        }
+        {<br>
+        &ensp;"d" = {<br>
+        &ensp;&ensp;"0": null,<br>
+        &ensp;&ensp;"1": 42 <br>
+        &ensp;}<br>
+        }
+        {<br>
+        &ensp;"d" = {<br>
+        &ensp;&ensp;"0": null,<br>
+        &ensp;&ensp;"1": 42 <br>
+        &ensp;}<br>
+        }
+        {<br>
+        &ensp;"d" = {<br>
+        &ensp;&ensp;"0": null,<br>
+        &ensp;&ensp;"1": 42 <br>
+        &ensp;}<br>
+        }
+        {<br>
+        &ensp;"d" = {<br>
+        &ensp;&ensp;"0": null,<br>
+        &ensp;&ensp;"1": 42 <br>
+        &ensp;}<br>
+        }
+      </div>
+    </section>
+
     <div id="cy">
-      <div id="status-line"></div>
+      <span id="status-line"></span>
     </div>
+
+    <section id="algo-controls">
+      <h2>Ovládání</h2>
+
+      <div class="content">
+        <button id="toggle-play" type="button" class="icon-button">
+          <img src="img/media-play-24.png" alt="play">
+        </button>
+        <button id="algo-step" type="button" class="icon-button">
+          <img src="img/media-step-forward-24.png" alt="step">
+        </button>
+        <button id="algo-finish" type="button" class="icon-button">
+          <img src="img/media-skip-forward-24.png" alt="skip">
+        </button>
+        <button id="show-biconnected" type="button">
+          Ukázat 2-souvislé komponenty
+        </button>
+        <label for="anim-speed">
+          <span>Rychlost animace</span>
+          <input type="range" name="anim-speed" value="100" min="1" max="100" id="anim-speed">
+        </label>
+      </div>
+
+    </section>
+
   </div>
   <a href="" id="downloadLink"></a>
 </body>

@@ -2,29 +2,28 @@ body {
   font-family: Arial, sans-serif;
   font-size: 15px;
   margin: 0;
-  padding: 0;
   color: #ddd;
   background-color: #222;
 }
 
 .container {
   height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.top-bar {
-  padding: 1em;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 1em;
+  max-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-rows: auto auto 1fr 1fr;
 }
 
 h1 {
   margin: 0;
-  width: auto;
-  flex: 1;
+  padding: 1rem;
+  grid-column: 1 / 4;
+  grid-row: 1;
+}
+
+h2 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
 }
 
 button {
@@ -41,20 +40,32 @@ button:active {
 }
 
 #cy {
-  width: 100%;
-  flex: 1;
-  margin: 0 auto;
-  border-top: 1px solid #ccc;
   position: relative;
+  grid-column: 1 / 4;
+  grid-row: 3 / 5;
 }
 
-.algo-controls {
+.algo-active #cy {
+  grid-column: 2;
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+}
+
+#cy div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#controls {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
   gap: 1em;
-  margin: 1em;
-  margin-top: 0;
+  grid-column: 1 / 4;
+  grid-row: 2;
+  border-bottom: 1px solid #ccc;
+  padding: 1rem;
+  padding-top: 0;
 }
 
 .divider {
@@ -70,6 +81,7 @@ button:active {
   position: absolute;
   top: 1em;
   left: 1em;
+  display: block;
 }
 
 input[type="file"] {
@@ -83,4 +95,89 @@ input[type="file"] {
   border: 0px;
   border-radius: 5px;
   color: white;
+}
+
+#algo-controls .content {
+  display: flex;
+  gap: 0.5em;
+  flex-wrap: wrap;
+}
+
+.icon-button {
+  padding: .5em .5em .2em .5em;
+}
+
+label[for="anim-speed"] {
+  width: 100%;
+  display: flex;
+  gap: 1em;
+  margin-top: 0.5em;
+  align-items: center;
+}
+
+#anim-speed {
+  flex: 1;
+}
+
+#show-biconnected {
+  flex: 1;
+}
+
+#show-biconnected.active {
+  background-color: hsl(215.75, 98.36%, 70%);
+}
+
+#algo-steps {
+  grid-column: 1;
+  grid-row: 3;
+  overflow: scroll;
+  margin: 1rem;
+  display: none;
+}
+
+.algo-active #algo-steps {
+  display: block;
+}
+
+#algo-steps .content {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+}
+
+#algo-steps .content div {
+  padding: 0.1em 0.3em;
+}
+
+#algo-steps .content .current {
+  background-color: yellow;
+  border: 1px solid black;
+  border-radius: 5px;
+  color: black;
+}
+
+#algo-vars {
+  grid-column: 1;
+  grid-row: 4;
+  overflow: scroll;
+  margin: 1rem;
+  margin-top: 0;
+  display: none;
+}
+
+.algo-active #algo-vars {
+  display: block;
+}
+
+#algo-controls {
+  grid-column: 3;
+  grid-row: 3 / 5;
+  margin: 1rem;
+  display: none;
+}
+
+.algo-active #algo-controls {
+  display: block;
 }
