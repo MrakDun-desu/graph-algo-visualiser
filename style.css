@@ -73,6 +73,10 @@ button:active {
   width: 1px;
 }
 
+.invisible-divider {
+  flex: 1;
+}
+
 #cy canvas {
   left: 0;
 }
@@ -171,6 +175,11 @@ label[for="anim-speed"] {
   display: block;
 }
 
+#algo-vars .content,
+#algo-steps .content {
+  white-space: pre;
+}
+
 #algo-controls {
   grid-column: 3;
   grid-row: 3 / 5;
@@ -180,4 +189,12 @@ label[for="anim-speed"] {
 
 .algo-active #algo-controls {
   display: block;
+}
+
+#toggle-controls {
+  display: none;
+}
+
+.algo-active #toggle-controls {
+  display: inline;
 }

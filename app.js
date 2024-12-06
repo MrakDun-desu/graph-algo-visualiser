@@ -210,44 +210,495 @@ function rerender() {
 }
 
 function removeAll() {
+  if (currentAlgo !== null) {
+    return;
+  }
   cy.remove("*");
   newNodeId = 0;
 }
 
 function addNode() {
+  if (currentAlgo !== null) {
+    return;
+  }
   setStatus(Status.addingNode)
 }
 
 function addEdge() {
+  if (currentAlgo !== null) {
+    return;
+  }
   selectedNode = null;
   setStatus(Status.addingEdge);
 }
 
 function removeNode() {
+  if (currentAlgo !== null) {
+    return;
+  }
   setStatus(Status.removingNode);
 }
 
 function removeEdge() {
-  setStatus(Status.removingEdge);
-}
-
-function removeEdge() {
+  if (currentAlgo !== null) {
+    return;
+  }
   setStatus(Status.removingEdge);
 }
 
 function startArticulation() {
   setStatus(Status.runningArticulation);
+  setCurrentAlgo(articulationPoints);
 }
 
 function startBridges() {
   setStatus(Status.runningBridges);
+  setCurrentAlgo(bridges);
+}
+
+function showBiconnected() {
   // TODO
 }
 
-function startBiconnected() {
-  setStatus(Status.runningBiconnected);
-  // TODO
+// -------------------- Algorithms ------------------------
+
+const algoStepTime = 500; // how long between automatic steps
+let algoVars = {}; // variables that the current algorithm uses
+let algoVarsInternal = {};
+let currentAlgo = null; // current running algorithm
+let algoStep = 0; // which step the algorithm is on
+let algoInterval = null; // interval that automatically steps the algorithm
+
+// reused elements
+const algoStepsContent = document.querySelector("#algo-steps .content");
+const algoVarsContent = document.querySelector("#algo-vars .content");
+const animSpeed = document.getElementById("anim-speed");
+const playToggle = document.getElementById("toggle-play");
+
+function setAlgoStep(val) {
+  if (currentAlgo === null) {
+    return;
+  }
+
+  algoStep = val;
+  algoStepsContent.querySelector(".current")?.classList.remove("current");
+  if (algoStepsContent.children.length + 1 >= algoStep) {
+    const currentStep = algoStepsContent.children[algoStep];
+    currentStep.classList.add("current");
+    currentStep.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 }
+
+function rerenderAlgoVars() {
+  if (currentAlgo === null) {
+    return;
+  }
+
+  algoVarsContent.textContent = JSON.stringify(algoVars, null, 3);
+}
+
+function execAlgoStep() {
+  if (currentAlgo === null) {
+    return;
+  }
+
+  currentAlgo[algoStep].callback();
+  if (algoStep + 1 > currentAlgo.length) {
+
+  }
+  setAlgoStep(algoStep + 1);
+  rerenderAlgoVars();
+}
+
+function changeAnimSpeed(speed) {
+  if (!algoInterval) {
+    return;
+  }
+  clearInterval(algoInterval);
+  algoInterval = setInterval(execAlgoStep, algoStepTime / (speed / 100));
+}
+
+function setCurrentAlgo(algo) {
+  if (currentAlgo !== null && algo === null ||
+    currentAlgo === null && algo !== null) {
+    document.querySelector(".container")
+      .classList.toggle("algo-active");
+  }
+
+  currentAlgo = algo;
+  if (currentAlgo === null) {
+    return;
+  }
+  const steps = document.querySelector("#algo-steps .content");
+  steps.replaceChildren();
+  for (const step of currentAlgo) {
+    const stepDiv = document.createElement("div");
+    stepDiv.textContent = step.code;
+    steps.appendChild(stepDiv);
+  }
+  algoVarsInternal = {};
+  algoVars = {};
+  rerenderAlgoVars();
+  setAlgoStep(0);
+}
+
+function toggleAlgoPlay() {
+  if (currentAlgo === null) {
+    return;
+  }
+
+  if (algoInterval === null) {
+    algoInterval = setInterval(execAlgoStep, algoStepTime / (animSpeed.valueAsNumber / 100));
+    playToggle.children[0].setAttribute("src", "img/media-pause-24.png");
+  } else {
+    clearInterval(algoInterval);
+    playToggle.children[0].setAttribute("src", "img/media-play-24.png");
+    algoInterval = null;
+  }
+}
+
+function algoFinish() {
+  clearInterval(algoInterval);
+  algoInterval = null;
+  while (currentAlgo !== null) {
+    execAlgoStep();
+  }
+}
+
+const articulationPoints = [
+  {
+    code: "for u in V do:",
+    iterator: null,
+    collection: null,
+    callback: function () {
+      if (this.collection === null) {
+        this.collection = cy.nodes();
+      }
+      if (this.iterator === null) {
+        this.iterator = 0;
+      }
+      if (this.iterator >= this.collection.length) {
+        this.iterator = null;
+        this.collection = null;
+        algoVars.u = undefined;
+        algoVarsInternal.u = undefined;
+        algoStep += 3;
+        return;
+      }
+      algoVars.u = this.collection[this.iterator].id();
+      algoVarsInternal.u = this.collection[this.iterator];
+      this.iterator++;
+    }
+  },
+
+  {
+    code: "  color[u] = WHITE",
+    callback: function () {
+      const element = algoVarsInternal.u;
+      algoVars.color ??= {};
+      algoVars.color[element.id()] = "WHITE";
+      element.data("color", 1);
+    }
+  },
+
+  {
+    code: "  p[u] = null",
+    callback: function () {
+      const element = algoVarsInternal.u;
+      algoVars.p ??= {};
+      algoVars.p[element.id()] = null;
+      element.data("p", null);
+    }
+  },
+
+  {
+    code: "  ap[u] = false",
+    callback: function () {
+      const element = algoVarsInternal.u;
+      algoVars.ap ??= {};
+      algoVars.ap[element.id()] = false;
+      element.data("ap", false);
+      algoStep -= 4;
+    }
+  },
+
+  {
+    code: "time = 0",
+    callback: function () {
+      algoVars.time = 0;
+    }
+  },
+
+  {
+    code: "for u in V do:",
+    iterator: null,
+    collection: null,
+    callback: function () {
+      if (this.collection === null) {
+        this.collection = cy.nodes();
+      }
+      if (this.iterator === null) {
+        this.iterator = 0;
+      }
+      if (this.iterator >= this.collection.length) {
+        this.iterator = null;
+        this.collection = null;
+        algoVars.u = undefined;
+        algoVarsInternal.u = undefined;
+        // end algorithm
+        if (algoInterval) {
+          clearInterval(algoInterval);
+          algoInterval = null;
+        }
+        return;
+      }
+      algoVars.u = this.collection[this.iterator].id();
+      algoVarsInternal.u = this.collection[this.iterator];
+      this.iterator++;
+    }
+  },
+
+  {
+    code: "  if color[u] == WHITE then:",
+    callback: function () {
+      if (algoVarsInternal.u.data("color") !== 1) {
+        // going back to for since there's nothing else after if
+        algoStep -= 2;
+      }
+    }
+  },
+
+  {
+    code: "    AP-Visit(u)",
+    callback: function () {
+      // gotta push to return stack to know where to come back (coming back to for here)
+      algoVarsInternal.returns ??= [];
+      algoVarsInternal.returns.push(algoStep - 3);
+      // no need to push u on stack, only do that when u goes out of scope (not here)
+    }
+  },
+
+  {
+    code: "AP-Visit(u):",
+    callback: function () { }
+  },
+
+  {
+    code: "color[u] = GRAY",
+    callback: function () {
+      const element = algoVarsInternal.u;
+      algoVars.color[element.id()] = "GRAY";
+      element.data("color", 2);
+    }
+  },
+
+  {
+    code: "children = 0",
+    callback: function () {
+      algoVars.children = 0;
+      // no need to push children on stack, only do that when it goes out of scope
+    }
+  },
+
+  {
+    code: "d[u] = low[u] = time = time + 1",
+    callback: function () {
+      algoVars.time += 1;
+      const element = algoVarsInternal.u;
+      algoVars.d ??= {};
+      algoVars.d[element.id()] = algoVars.time;
+      algoVars.low ??= {};
+      algoVars.low[element.id()] = algoVars.time;
+    }
+  },
+
+  {
+    code: "for v in Adj[u] do:",
+    callback: function () {
+      algoVarsInternal.collection ??= algoVarsInternal.u.neighborhood("node");
+      algoVarsInternal.iterator ??= 0;
+      const collection = algoVarsInternal.collection;
+
+      if (algoVarsInternal.iterator >= collection.length) {
+        algoVarsInternal.iterator = undefined;
+        algoVarsInternal.collection = undefined;
+        algoVars.v = undefined;
+        algoVarsInternal.v = undefined;
+        algoStep += 11;
+        return;
+      }
+      algoVars.v = collection[algoVarsInternal.iterator].id();
+      algoVarsInternal.v = collection[algoVarsInternal.iterator];
+      algoVarsInternal.iterator++;
+    }
+  },
+
+  {
+    code: "  if color[v] == WHITE then:",
+    callback: function () {
+      if (algoVarsInternal.v.data("color") !== 1) {
+        algoStep += 8;
+      }
+    }
+  },
+
+  {
+    code: "    children = children + 1",
+    callback: function () {
+      algoVars.children++;
+    }
+  },
+
+  {
+    code: "    p[v] = u",
+    callback: function () {
+      const element = algoVarsInternal.v;
+      algoVars.p[element.id()] = algoVarsInternal.u.id();
+      element.data("p", algoVarsInternal.u);
+    }
+  },
+
+  {
+    code: "    AP-Visit(v)",
+    callback: function () {
+      // push all local variables on stack since they're going to change
+      algoVarsInternal.uStack ??= [];
+      algoVarsInternal.vStack ??= [];
+      algoVarsInternal.childrenStack ??= [];
+      algoVarsInternal.collectionStack ??= [];
+      algoVarsInternal.iteratorStack ??= [];
+      algoVarsInternal.uStack.push(algoVarsInternal.u);
+      algoVarsInternal.vStack.push(algoVarsInternal.v);
+      algoVarsInternal.childrenStack.push(algoVars.children);
+      algoVarsInternal.collectionStack.push(algoVarsInternal.collection);
+      algoVarsInternal.iteratorStack.push(algoVarsInternal.iterator);
+      // unset the variables that go out of scope
+      algoVarsInternal.u = algoVarsInternal.v;
+      algoVars.u = algoVars.v;
+      algoVarsInternal.v = undefined;
+      algoVars.v = undefined;
+      algoVars.children = undefined;
+      algoVarsInternal.collection = undefined;
+      algoVarsInternal.iterator = undefined;
+      // mark return position (the start of for)
+      algoVarsInternal.returns.push(algoStep);
+      algoStep -= 9;
+    }
+  },
+
+  {
+    code: "    low[u] = Min(low[u], low[v])",
+    callback: function () {
+      algoVars.low[algoVarsInternal.u.id()] = Math.min(
+        algoVars.low[algoVarsInternal.u.id()],
+        algoVars.low[algoVarsInternal.v.id()],
+      );
+    }
+  },
+
+  {
+    code: "    if p[u] == null && children > 1 then:",
+    callback: function () {
+      if (algoVars.p[algoVarsInternal.u.id()] !== null || algoVars.children <= 1) {
+        algoStep += 1;
+      }
+    }
+  },
+
+  {
+    code: "      ap[u] = true",
+    callback: function () {
+      algoVars.ap[algoVarsInternal.u.id()] = true;
+    }
+  },
+
+  {
+    code: "    if p[u] != null && low[v] >= d[u] then:",
+    callback: function () {
+      if (algoVars.p[algoVarsInternal.u.id()] === null ||
+        algoVars.low[algoVarsInternal.v.id()] < algoVars[algoVarsInternal.u.id()]) {
+        algoStep += 1;
+      }
+    }
+  },
+
+  {
+    code: "      ap[u] = true",
+    callback: function () {
+      algoVars.ap[algoVarsInternal.u.id()] = true;
+    }
+  },
+
+  {
+    code: "  else if p[u] != v then:",
+    callback: function () {
+      if (algoVars.p[algoVarsInternal.u.id()] === algoVarsInternal.v.id()) {
+        algoStep += 1;
+      }
+    }
+  },
+
+  {
+    code: "    low[u] = Min(low[u], d[v])",
+    callback: function () {
+      algoVars.low[algoVarsInternal.u.id()] = Math.min(
+        algoVars.low[algoVarsInternal.u.id()],
+        algoVars.d[algoVarsInternal.v.id()],
+      );
+      // back to the start of the for
+      algoStep -= 12;
+    }
+  },
+
+  {
+    code: "color[u] = BLACK",
+    callback: function () {
+      const element = algoVarsInternal.u;
+      algoVars.color[element.id()] = "BLACK";
+      element.data("color", 3);
+      // returning from function here so pop all locals from stack
+      algoVarsInternal.v = algoVarsInternal.vStack?.pop();
+      algoVarsInternal.u = algoVarsInternal.uStack?.pop();
+      algoVarsInternal.collection = algoVarsInternal.collectionStack?.pop();
+      algoVarsInternal.iterator = algoVarsInternal.iteratorStack?.pop();
+      algoVars.v = algoVarsInternal.v?.id() ?? undefined;
+      algoVars.u = algoVarsInternal.u?.id() ?? undefined;
+      algoVars.children = algoVarsInternal.childrenStack?.pop() ?? undefined;
+      // also return to the step where the return points to
+      algoStep = algoVarsInternal.returns.pop();
+      // just to clean up, also destroy the stacks if we're returning for last time
+      if (algoVarsInternal.returns.length === 0) {
+        algoVarsInternal.returns = undefined;
+        algoVarsInternal.vStack = undefined;
+        algoVarsInternal.uStack = undefined;
+        algoVarsInternal.childrenStack = undefined;
+        algoVarsInternal.collectionStack = undefined;
+        algoVarsInternal.iteratorStack = undefined;
+      }
+    }
+  }
+]
+
+const bridges = [
+  "for u in V do:",
+  "  color[u] = WHITE",
+  "  p[u] = null",
+  "time = 0",
+  "for u in V do:",
+  "  if color[u] == WHITE then:",
+  "    Bridge-Visit(u)",
+  "Bridge-Visit(u):",
+  "color[u] = GRAY",
+  "d[u] = low[u] = time = time + 1",
+  "for v in Adj[u] do",
+  "  if color[v] == WHITE then:",
+  "    p[v] = u",
+  "    Bridge-Visit(v)",
+  "    low[u] = Min(low[u], low[v])",
+  "    if low[v] > d[u] then:",
+  "      bridges.add((u,v))",
+  "color[u] = BLACK",
+]
 
 // -------------------- Event handling --------------------
 
@@ -306,18 +757,44 @@ const eventConfigs = [
   },
   {
     id: "show-biconnected",
-    handler: startBiconnected,
+    handler: showBiconnected,
     shortcut: "c"
   },
+  {
+    id: "toggle-play",
+    handler: toggleAlgoPlay,
+    shortcut: " ",
+    tooltip: "Spustit/pozastavit algoritmus "
+  },
+  {
+    id: "algo-step",
+    handler: execAlgoStep,
+    shortcut: "s",
+    tooltip: "Krok algoritmu "
+  },
+  {
+    id: "algo-finish",
+    handler: algoFinish,
+    tooltip: "Ukončit algoritmus"
+  },
+  {
+    id: "anim-speed",
+    event: "change",
+    handler: (evt) => changeAnimSpeed(evt.target.valueAsNumber)
+  }
 ];
 
 for (const config of eventConfigs) {
   const target = document.getElementById(config.id);
   target.addEventListener(config.event ?? "click", config.handler);
-  target.setAttribute(
-    "title",
-    config.tooltip ?? "" + `(${config.shortcut})`
-  );
+  if (config.shortcut) {
+    target.setAttribute(
+      "title",
+      (config.tooltip ?? "") + `(${config.shortcut})`
+    );
+  } else {
+    target.setAttribute("title", config.tooltip ?? "");
+  }
 }
 
 document.addEventListener("keydown", (evt) => {
@@ -331,3 +808,4 @@ document.addEventListener("keydown", (evt) => {
     }
   }
 });
+
