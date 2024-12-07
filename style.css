@@ -11,7 +11,7 @@ body {
   max-height: 100vh;
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
-  grid-template-rows: auto auto 1fr 1fr;
+  grid-template-rows: auto auto auto 3fr;
 }
 
 h1 {
@@ -133,7 +133,7 @@ label[for="anim-speed"] {
 
 #algo-steps {
   grid-column: 1;
-  grid-row: 3;
+  grid-row: 3 / 5;
   overflow: scroll;
   margin: 1rem;
   display: none;
@@ -144,8 +144,6 @@ label[for="anim-speed"] {
 }
 
 #algo-steps .content {
-  font-family: 'Courier New', Courier, monospace;
-  font-weight: 600;
   display: flex;
   flex-direction: column;
   gap: 0.3em;
@@ -163,7 +161,7 @@ label[for="anim-speed"] {
 }
 
 #algo-vars {
-  grid-column: 1;
+  grid-column: 3;
   grid-row: 4;
   overflow: scroll;
   margin: 1rem;
@@ -178,11 +176,13 @@ label[for="anim-speed"] {
 #algo-vars .content,
 #algo-steps .content {
   white-space: pre;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 600;
 }
 
 #algo-controls {
   grid-column: 3;
-  grid-row: 3 / 5;
+  grid-row: 3;
   margin: 1rem;
   display: none;
 }

@@ -320,10 +320,10 @@ function changeAnimSpeed(speed) {
 }
 
 function setCurrentAlgo(algo) {
-  if (currentAlgo !== null && algo === null ||
-    currentAlgo === null && algo !== null) {
+  if (currentAlgo === null && algo !== null) {
     document.querySelector(".container")
-      .classList.toggle("algo-active");
+      .classList.add("algo-active");
+    rerender();
   }
 
   currentAlgo = algo;
@@ -349,6 +349,7 @@ function toggleAlgoControls() {
   const toggle = document.getElementById("toggle-controls");
   if (container.classList.contains("algo-active")) {
     container.classList.remove("algo-active");
+    rerender();
     if (currentAlgo === null) {
       setStatus("");
     } else {
@@ -358,6 +359,7 @@ function toggleAlgoControls() {
   } else {
     container.classList.remove("algo-controls-hidden");
     container.classList.add("algo-active");
+    rerender();
     toggle.textContent = "Skrýt ovládání algoritmu";
   }
 }
@@ -386,6 +388,11 @@ function algoFinish() {
 }
 
 const articulationPoints = [
+  {
+    code: "AP(V, Adj):",
+    callback: function () { }
+  },
+
   {
     code: "for u in V do:",
     iterator: null,
@@ -639,8 +646,8 @@ const articulationPoints = [
     code: "    if p[u] != null && low[v] >= d[u] then:",
     callback: function () {
       if (algoVars.p[algoVarsInternal.u.id()] === null ||
-        algoVars.low[algoVarsInternal.v.id()] < algoVars[algoVarsInternal.u.id()]) {
-        algoStep += 1;
+        algoVars.low[algoVarsInternal.v.id()] < algoVars.d[algoVarsInternal.u.id()]) {
+        algoStep -= 9;
       }
     }
   },
@@ -649,6 +656,7 @@ const articulationPoints = [
     code: "      ap[u] = true",
     callback: function () {
       algoVars.ap[algoVarsInternal.u.id()] = true;
+      algoStep -= 10;
     }
   },
 
@@ -656,7 +664,7 @@ const articulationPoints = [
     code: "  else if p[u] != v then:",
     callback: function () {
       if (algoVars.p[algoVarsInternal.u.id()] === algoVarsInternal.v.id()) {
-        algoStep += 1;
+        algoStep -= 11;
       }
     }
   },
