@@ -15,7 +15,8 @@ const Status = {
   removingEdge: "Vyberte hranu pro odstranění",
   runningArticulation: "Hledání artikulačních bodů",
   runningBridges: "Hledání mostů",
-  runningBiconnected: "Hledání 2-souvislých komponentů"
+  runningBiconnected: "Hledání 2-souvislých komponentů",
+  algoFinished: "Algoritmus ukončen"
 };
 
 // -------------------- Helper functions --------------------
@@ -330,16 +331,35 @@ function setCurrentAlgo(algo) {
     return;
   }
   const steps = document.querySelector("#algo-steps .content");
-  steps.replaceChildren();
+  const newStepsContent = [];
   for (const step of currentAlgo) {
     const stepDiv = document.createElement("div");
     stepDiv.textContent = step.code;
-    steps.appendChild(stepDiv);
+    newStepsContent.push(stepDiv);
   }
+  steps.replaceChildren(...newStepsContent);
   algoVarsInternal = {};
   algoVars = {};
   rerenderAlgoVars();
   setAlgoStep(0);
+}
+
+function toggleAlgoControls() {
+  const container = document.querySelector(".container");
+  const toggle = document.getElementById("toggle-controls");
+  if (container.classList.contains("algo-active")) {
+    container.classList.remove("algo-active");
+    if (currentAlgo === null) {
+      setStatus("");
+    } else {
+      toggle.textContent = "Zobrazit ovládání algoritmu";
+      container.classList.add("algo-controls-hidden");
+    }
+  } else {
+    container.classList.remove("algo-controls-hidden");
+    container.classList.add("algo-active");
+    toggle.textContent = "Skrýt ovládání algoritmu";
+  }
 }
 
 function toggleAlgoPlay() {
@@ -450,6 +470,9 @@ const articulationPoints = [
           clearInterval(algoInterval);
           algoInterval = null;
         }
+        currentAlgo = null;
+        document.querySelector("#algo-steps .content .current")?.classList.toggle("current");
+        setStatus(Status.algoFinished);
         return;
       }
       algoVars.u = this.collection[this.iterator].id();
@@ -781,6 +804,11 @@ const eventConfigs = [
     id: "anim-speed",
     event: "change",
     handler: (evt) => changeAnimSpeed(evt.target.valueAsNumber)
+  },
+  {
+    id: "toggle-controls",
+    handler: toggleAlgoControls,
+    shortcut: "Escape"
   }
 ];
 

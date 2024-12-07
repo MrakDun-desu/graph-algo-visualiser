@@ -195,6 +195,7 @@ label[for="anim-speed"] {
   display: none;
 }
 
+.algo-controls-hidden #toggle-controls,
 .algo-active #toggle-controls {
   display: inline;
 }
