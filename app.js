@@ -286,7 +286,7 @@ function showBiconnected() {
 
 // -------------------- Algorithms ------------------------
 
-const algoStepTime = 500; // how long between automatic steps
+const algoStepTime = 200; // how long between automatic steps
 let algoVars = {}; // variables that the current algorithm uses
 let algoVarsInternal = {};
 let currentAlgo = null; // current running algorithm
@@ -403,6 +403,7 @@ function toggleAlgoPlay() {
 
 function algoFinish() {
   clearInterval(algoInterval);
+  playToggle.children[0].setAttribute("src", "img/media-play-24.png");
   algoInterval = null;
   while (currentAlgo !== null) {
     execAlgoStep();
@@ -496,6 +497,7 @@ const articulationPoints = [
         // end algorithm
         if (algoInterval) {
           clearInterval(algoInterval);
+          playToggle.children[0].setAttribute("src", "img/media-play-24.png");
           algoInterval = null;
         }
         currentAlgo = null;
@@ -811,6 +813,7 @@ const bridges = [
         // end algorithm
         if (algoInterval) {
           clearInterval(algoInterval);
+          playToggle.children[0].setAttribute("src", "img/media-play-24.png");
           algoInterval = null;
         }
         currentAlgo = null;
