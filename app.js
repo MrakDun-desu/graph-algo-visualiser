@@ -1208,7 +1208,8 @@ const eventConfigs = [
   {
     id: "algo-finish",
     handler: algoFinish,
-    tooltip: "Ukončit algoritmus"
+    tooltip: "Ukončit algoritmus",
+    shortcut: "f"
   },
   {
     id: "anim-speed",
@@ -1219,7 +1220,7 @@ const eventConfigs = [
     id: "toggle-controls",
     handler: toggleAlgoControls,
     shortcut: "Escape"
-  }
+  },
 ];
 
 for (const config of eventConfigs) {

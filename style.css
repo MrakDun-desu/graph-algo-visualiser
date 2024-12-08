@@ -195,3 +195,30 @@ label[for="anim-speed"] {
 .algo-active #toggle-controls {
   display: inline;
 }
+
+.art-point::after {
+  content: " ";
+  height: 1em;
+  width: 1em;
+  background-color: #0074D9;
+  border: 2px solid yellow;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.bridge::after {
+  content: " ";
+  height: 0;
+  width: 3em;
+  border-top: 3px solid #ccc;
+  border-bottom-width: 0;
+  border-style: dashed;
+  display: inline-block;
+}
+
+.art-point, .bridge {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 1em;
+}
