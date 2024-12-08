@@ -3,6 +3,10 @@
 let statusLine = "";
 let newNodeId = 0;
 let selectedNode = null;
+let graphChanged = false;
+let currentBccs = [];
+let nodeBccs = {};
+let biconnectedOn = false;
 
 const downloadLink = document.getElementById("downloadLink");
 const fileUpload = document.getElementById("upload");
@@ -38,9 +42,12 @@ const cy = cytoscape({
         'label': 'data(id)',
         'color': '#fff',
         'text-valign': 'center',
-        'text-outline-width': 2,
+        'text-outline-width': 1,
         'text-outline-color': '#0074D9',
-        'outline-color': 'yellow'
+        'outline-color': 'yellow',
+        'border-position': 'outside',
+        'border-cap': 'round',
+        'border-join': 'round'
       }
     },
     {
@@ -89,6 +96,11 @@ cy.on("tap", function (event) {
       newNodeId++;
     }
     cy.add({ data: { id: newNodeId.toString() }, position: event.position });
+    graphChanged = true;
+    if (biconnectedOn) {
+      biconnectedOn = false;
+      toggleBiconnected();
+    }
     setStatus("");
   }
 });
@@ -97,6 +109,11 @@ cy.on("tap", "node", function (event) {
   const node = event.target;
   if (statusLine === Status.removingNode) {
     cy.remove(node);
+    graphChanged = true;
+    if (biconnectedOn) {
+      biconnectedOn = false;
+      toggleBiconnected();
+    }
     setStatus("");
   }
   if (statusLine === Status.addingEdge) {
@@ -108,6 +125,11 @@ cy.on("tap", "node", function (event) {
           data: { source: selectedNode.id(), target: node.id() }
         }
       ])
+      graphChanged = true;
+      if (biconnectedOn) {
+        biconnectedOn = false;
+        toggleBiconnected();
+      }
       selectedNode = null;
       setStatus("");
     }
@@ -118,6 +140,11 @@ cy.on("tap", "edge", function (event) {
   const edge = event.target;
   if (statusLine === Status.removingEdge) {
     cy.remove(edge);
+    graphChanged = true;
+    if (biconnectedOn) {
+      biconnectedOn = false;
+      toggleBiconnected();
+    }
     setStatus("");
   }
 });
@@ -169,6 +196,11 @@ function upload() {
         cy.batch(function () {
           cy.remove("*");
           cy.add(elements);
+          graphChanged = true;
+          if (biconnectedOn) {
+            biconnectedOn = false;
+            toggleBiconnected();
+          }
         });
         rerender();
       } catch (err) {
@@ -221,7 +253,6 @@ function download() {
       // so it's necessary to remove it manually when it's serialized
       // (removing it with removeAttribute does nothing)
       .replace("graph xmlns=\"\" ", "graph ");
-  console.log(output);
   const blob = new Blob([output], { type: "application/xml" });
   downloadLink.href = URL.createObjectURL(blob);
   downloadLink.download = "graph.graphml";
@@ -238,6 +269,11 @@ function removeAll() {
     return;
   }
   cy.remove("*");
+  graphChanged = true;
+  if (biconnectedOn) {
+    biconnectedOn = false;
+    toggleBiconnected();
+  }
   newNodeId = 0;
 }
 
@@ -280,8 +316,88 @@ function startBridges() {
   setCurrentAlgo(bridges);
 }
 
-function showBiconnected() {
-  // TODO
+function findBiconnected() {
+  const graph = cy.elements();
+  const stack = [];
+  const disc = {};
+  const low = {};
+  const parent = {};
+  let time = 0;
+  currentBccs = [];
+
+  function bccVisit(u) {
+    disc[u.id()] = low[u.id()] = ++time;
+    stack.push(u);
+
+    u.neighborhood("node").forEach(v => {
+      if (!disc[v.id()]) {
+        parent[v.id()] = u;
+        bccVisit(v);
+        low[u.id()] = Math.min(low[u.id()], low[v.id()]);
+
+        if (low[v.id()] >= disc[u.id()]) {
+          const bcc = [];
+          let w;
+          do {
+            w = stack.pop();
+            bcc.push(w);
+          } while (w !== v);
+          bcc.push(u);
+          currentBccs.push(bcc);
+        }
+      } else if (v.id() !== parent[u.id()]) {
+        low[u.id()] = Math.min(low[u.id()], disc[v.id()]);
+      }
+    });
+  }
+
+  graph.forEach(node => {
+    if (!disc[node.id()]) {
+      bccVisit(node);
+    }
+  });
+
+  nodeBccs = {};
+
+  currentBccs.forEach((bcc, index) => {
+    bcc.forEach(node => {
+      if (!nodeBccs[node.id()]) {
+        nodeBccs[node.id()] = [];
+      }
+      nodeBccs[node.id()].push(index);
+    });
+  });
+}
+
+function toggleBiconnected() {
+  if (biconnectedOn) {
+    cy.$().removeStyle();
+    biconnectedOn = false;
+    return;
+  }
+  biconnectedOn = true;
+  if (graphChanged) {
+    findBiconnected();
+    graphChanged = false;
+  }
+
+  const pieColors = currentBccs.map((_, index) => `hsl(${(index * 360) / currentBccs.length}, 100%, 50%)`);
+
+  cy.nodes().forEach(node => {
+    if (!nodeBccs[node.id()]) {
+      return;
+    }
+    const nodeStyle = {
+      "pie-size": "100%"
+    };
+    let i = 1;
+    for (const componentId of nodeBccs[node.id()]) {
+      nodeStyle[`pie-${i}-background-color`] = pieColors[componentId];
+      nodeStyle[`pie-${i}-background-size`] = 100 / nodeBccs[node.id()].length;
+      i++;
+    }
+    node.style(nodeStyle);
+  });
 }
 
 // -------------------- Algorithms ------------------------
@@ -1074,7 +1190,7 @@ const eventConfigs = [
   },
   {
     id: "show-biconnected",
-    handler: showBiconnected,
+    handler: toggleBiconnected,
     shortcut: "c"
   },
   {

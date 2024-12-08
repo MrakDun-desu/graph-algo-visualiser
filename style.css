@@ -123,10 +123,6 @@ label[for="anim-speed"] {
   flex: 1;
 }
 
-#show-biconnected {
-  flex: 1;
-}
-
 #show-biconnected.active {
   background-color: hsl(215.75, 98.36%, 70%);
 }
