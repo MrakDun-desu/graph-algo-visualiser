@@ -163,7 +163,7 @@ function upload() {
       return;
     }
 
-    const root = xmlGraph.activeElement;
+    const root = xmlGraph.documentElement;
     const graph = root.querySelector("graph");
     if (!graph) {
       alert("Špatný formát nahraného souboru")
